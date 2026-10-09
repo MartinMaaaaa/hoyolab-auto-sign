@@ -134,8 +134,11 @@ class HoyoLabClient:
     ) -> tuple[CheckinStatus, dict[str, Any] | None, str]:
         """Perform sign-in request (POST)."""
         headers = self._build_headers(cookie, game)
+        payload = {"act_id": game.act_id, "lang": "en-us"}
         try:
-            resp = self.session.post(game.sign_url, headers=headers, timeout=self.timeout)
+            resp = self.session.post(
+                game.sign_url, json=payload, headers=headers, timeout=self.timeout
+            )
             status_code = resp.status_code
             try:
                 data = resp.json()
