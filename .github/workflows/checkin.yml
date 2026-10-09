@@ -1,0 +1,48 @@
+name: HoYoLAB Checkin
+
+on:
+  schedule:
+    - cron: '0 2 * * *'        # UTC 02:00 = 北京时间 10:00
+  workflow_dispatch:
+
+concurrency:
+  group: hoyolab-checkin
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  checkin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Run Checkin
+        run: python checkin.py
+        timeout-minutes: 8
+        env:
+          HOYOLAB_COOKIES: ${{ secrets.HOYOLAB_COOKIES }}
+          HOYOLAB_GAMES: ${{ vars.HOYOLAB_GAMES }}
+          HOYOLAB_APP_VERSION: ${{ vars.HOYOLAB_APP_VERSION }}
+          HOYOLAB_USER_AGENT: ${{ vars.HOYOLAB_USER_AGENT }}
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PUSH_LEVEL: ${{ github.event_name == 'workflow_dispatch' && 'all' || vars.PUSH_LEVEL || 'fail_only' }}
+          CHECKIN_MAX_ATTEMPTS: '3'
+          CHECKIN_RETRY_DELAY_SECONDS: '60'

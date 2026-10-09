@@ -1,0 +1,38 @@
+name: Keep Repository Active
+
+on:
+  schedule:
+    - cron: '23 3 1 * *'        # 每月 1 号 UTC 03:23
+  workflow_dispatch:
+
+concurrency:
+  group: keep-alive
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update last-active timestamp
+        run: |
+          mkdir -p .github
+          date -u +"%Y-%m-%d %H:%M:%S UTC" > .github/last-active.txt
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/last-active.txt
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: keep repository active [skip ci]"
+            git push
+          fi
