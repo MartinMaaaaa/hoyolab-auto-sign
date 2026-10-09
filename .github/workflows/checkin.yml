@@ -2,7 +2,7 @@ name: HoYoLAB Checkin
 
 on:
   schedule:
-    - cron: '0 2 * * *'        # UTC 02:00 = 北京时间 10:00
+    - cron: '40 5 * * *'        # UTC 05:40 = 北京时间 13:40
   workflow_dispatch:
 
 concurrency:
