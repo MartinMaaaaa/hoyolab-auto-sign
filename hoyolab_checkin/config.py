@@ -30,6 +30,7 @@ class Config:
     retry_delay_seconds: float = 60.0
     app_version: str = DEFAULT_APP_VERSION
     user_agent: str = DEFAULT_USER_AGENT
+    enable_news: bool = True
 
 
 def load_config(env: Mapping[str, str] | None = None) -> Config:
@@ -107,6 +108,10 @@ def load_config(env: Mapping[str, str] | None = None) -> Config:
     app_version = env.get("HOYOLAB_APP_VERSION", "").strip() or DEFAULT_APP_VERSION
     user_agent = env.get("HOYOLAB_USER_AGENT", "").strip() or DEFAULT_USER_AGENT
 
+    # Daily news feature flag
+    raw_enable_news = env.get("ENABLE_DAILY_NEWS", "true").strip().lower()
+    enable_news = raw_enable_news not in ("false", "0", "no", "off")
+
     return Config(
         cookies=parsed_cookies,
         games=parsed_games,
@@ -118,4 +123,5 @@ def load_config(env: Mapping[str, str] | None = None) -> Config:
         retry_delay_seconds=retry_delay_seconds,
         app_version=app_version,
         user_agent=user_agent,
+        enable_news=enable_news,
     )

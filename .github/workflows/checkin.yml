@@ -43,6 +43,7 @@ jobs:
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          PUSH_LEVEL: ${{ github.event_name == 'workflow_dispatch' && 'all' || vars.PUSH_LEVEL || 'fail_only' }}
+          PUSH_LEVEL: ${{ github.event_name == 'workflow_dispatch' && 'all' || vars.PUSH_LEVEL || 'all' }}
+          ENABLE_DAILY_NEWS: ${{ vars.ENABLE_DAILY_NEWS || 'true' }}
           CHECKIN_MAX_ATTEMPTS: '3'
           CHECKIN_RETRY_DELAY_SECONDS: '60'

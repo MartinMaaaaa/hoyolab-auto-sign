@@ -8,7 +8,7 @@
 <p align="center">
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Version" /></a>
   <a href="https://github.com/features/actions"><img src="https://img.shields.io/badge/Platform-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="GitHub Actions" /></a>
-  <a href="#-测试与工程质量"><img src="https://img.shields.io/badge/Tests-33%20Passed-2ea44f?style=for-the-badge&logo=pytest&logoColor=white" alt="Tests Passed" /></a>
+  <a href="#-测试与工程质量"><img src="https://img.shields.io/badge/Tests-50%20Passed-2ea44f?style=for-the-badge&logo=pytest&logoColor=white" alt="Tests Passed" /></a>
   <a href="#-核心技术特色"><img src="https://img.shields.io/badge/Server%20Cost-Zero%20¥-orange?style=for-the-badge" alt="Zero Server Cost" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-purple?style=for-the-badge" alt="License" /></a>
 </p>
@@ -53,6 +53,12 @@
   控制台输出与通知推送中，所有涉及 UID、Token、Cookie 等机密字段均经过严格的哈希掩码处理，杜绝日志泄露隐患。
 * **🔄 防闲置休眠机制（Keep-Alive）**  
   针对 GitHub 对 60 天无提交公开仓库自动停用定时任务的限制，项目内嵌保活工作流（`keep-alive.yml`），每月初自动提交一次轻量时间戳，确保定时任务长效运行。
+* **🍁 每日加拿大权威资讯推送（Canada Focus & Immigrant News）**  
+  每天定时任务中自动精选 1 篇高质量加拿大要闻随签到战报一同送达，严格满足：
+  1. **严格 2 天内**：必须是 48 小时内的即时新闻，杜绝陈旧失效资讯；
+  2. **极高权重/官方媒体**：仅限 IRCC（移民部官方）、CBC News、The Globe and Mail、Global News 等最高权威来源；
+  3. **加拿大专注与外来者焦点**：严格过滤美国国内政务，优先精选移民（PR/快速通道）、新居民、留学生、外籍劳工及华裔/印度裔等外来群体动态，并提供中英对照与智能摘要；
+  4. **零商业软文**：坚决过滤企业新品发布、季度财报、股价行情等商业营销资讯。
 
 <p align="center">
   <img src="docs/assets/success_stamp.jpg" alt="Checkin Mission Accomplished" width="300px" style="border-radius: 12px; margin: 12px 0;" />
@@ -138,7 +144,8 @@
 | 变量名 | 默认值 | 作用说明 |
 | :--- | :--- | :--- |
 | `HOYOLAB_GAMES` | `genshin,star_rail,zzz` | 指定签到的游戏（多个用逗号隔开，可任意剔除不需要的游戏） |
-| `PUSH_LEVEL` | `fail_only` | 推送策略：`fail_only`（仅失败/风控时报警，平时静默）或 `all`（每天必发战报） |
+| `PUSH_LEVEL` | `all` | 推送策略：`all`（每日必发战报与要闻）或 `fail_only`（仅失败/风控时报警） |
+| `ENABLE_DAILY_NEWS` | `true` | 是否启用每日加拿大权威要闻推送：`true` 或 `false` |
 | `HOYOLAB_APP_VERSION` | `2.34.1` | 客户端模拟版本，米哈游更新客户端校验时可随时覆盖 |
 | `HOYOLAB_USER_AGENT` | Chrome 最新标准 UA | 自定义浏览器特征标识 |
 
@@ -153,7 +160,7 @@
 python -m unittest discover -s tests -v
 ```
 
-* **33 个单元测试全绿通过**，覆盖 API 状态机判定、参数配置容错、防风控重试退避、多账号编排调度及日志脱敏；
+* **50 个单元测试全绿通过**，覆盖 API 状态机判定、参数配置容错、防风控重试退避、多账号编排调度、加拿大要闻 4 大规则过滤（时效/高权重/排美/免商）与优先级打分、中英对照格式化以及日志脱敏；
 * **测试用例 100% 内存 Mock**，CI 执行期间不发出任何外网请求，确保极速、纯粹与稳定。
 
 ---
@@ -163,7 +170,7 @@ python -m unittest discover -s tests -v
 ```text
 ├── .github/
 │   └── workflows/
-│       ├── checkin.yml          # 定时调度：每日 13:40 准点打卡任务
+│       ├── checkin.yml          # 定时调度：每日 13:40 准点打卡任务与要闻更新
 │       └── keep-alive.yml       # 永动引擎：每月提交防止仓库休眠
 ├── docs/
 │   └── assets/                  # 角色表情包与视觉插图
@@ -173,9 +180,17 @@ python -m unittest discover -s tests -v
 │   ├── exceptions.py            # 自定义异常分级
 │   ├── games.py                 # 游戏规范与端点路由注册表
 │   ├── log.py                   # 日志格式化与敏感凭据脱敏器
+│   ├── news.py                  # 加拿大每日权威资讯采集、过滤与中英格式化
 │   ├── notify.py                # 微信 PushPlus / Telegram 消息分发
 │   └── runner.py                # 多账号、多游戏执行编排调度器
-├── tests/                       # 33 项内存 Mock 自动化单元测试集
+├── tests/                       # 50 项内存 Mock 自动化单元测试集
+│   ├── test_api.py
+│   ├── test_config.py
+│   ├── test_games.py
+│   ├── test_log.py
+│   ├── test_news.py             # 资讯时效、权重源、排商、排美与打分覆盖测试
+│   ├── test_notify.py
+│   └── test_runner.py
 ├── checkin.py                   # 主执行入口文件
 ├── requirements.txt             # 生产依赖（仅 requests）
 └── README.md                    # 本说明文档

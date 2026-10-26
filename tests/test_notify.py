@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from hoyolab_checkin.api import CheckinStatus
 from hoyolab_checkin.config import Config
+from hoyolab_checkin.news import NewsItem
 from hoyolab_checkin.notify import format_report, send_report
 from hoyolab_checkin.runner import AccountResult, GameResult
 
@@ -32,6 +33,37 @@ class TestNotify(unittest.TestCase):
         self.assertIn("⏭️ 崩坏：星穹铁道：今日已签（本月第 8 天）", report)
         self.assertIn("⚠️ 绝区零：触发风控验证码，需人工处理", report)
         self.assertIn("统计：成功 1 / 已签 1 / 失败 1 —— 共 3 项", report)
+        self.assertNotIn("今日加拿大要闻", report)
+
+    def test_format_report_with_news(self) -> None:
+        import datetime
+        results = [
+            AccountResult(
+                account_index=1,
+                account_id_masked="ltuid 123***89",
+                game_results=(
+                    GameResult("genshin", "原神", CheckinStatus.SUCCESS, "OK", 8),
+                ),
+            )
+        ]
+        news = NewsItem(
+            title="Smith scores slim majority on immigration questions",
+            source="CBC News",
+            url="https://cbc.ca/news/123",
+            published_at=datetime.datetime(2026, 10, 25, 12, 0, tzinfo=datetime.timezone.utc),
+            summary="Alberta voters cast ballots on constitutional reform.",
+            zh_title="史密斯在移民问题上获得微弱多数支持",
+            zh_summary="阿尔伯塔省选民对宪法改革投票。",
+            is_immigration=True,
+        )
+        report = format_report(results, date_str="2026-10-26", news_item=news)
+        self.assertIn("🎮 HoYoLAB 签到报告 2026-10-26 (UTC)", report)
+        self.assertIn("🍁 今日加拿大要闻（移民与新居民焦点）", report)
+        self.assertIn("📌 标题：史密斯在移民问题上获得微弱多数支持", report)
+        self.assertIn("🏷️ 原文：Smith scores slim majority on immigration questions", report)
+        self.assertIn("🏛️ 来源：CBC News", report)
+        self.assertIn("🔗 链接：https://cbc.ca/news/123", report)
+        self.assertIn("📝 摘要：阿尔伯塔省选民对宪法改革投票。", report)
 
     @patch("hoyolab_checkin.notify.requests.post")
     def test_push_level_fail_only_skips_when_all_success(

@@ -10,6 +10,7 @@ import requests
 from .api import CheckinStatus
 from .config import Config
 from .log import mask_secret
+from .news import NewsItem, format_news_block
 from .runner import AccountResult
 
 logger = logging.getLogger(__name__)
@@ -35,7 +36,11 @@ def _status_to_line(
             return f"  ❌ {game_name}：接口错误{brief_msg}"
 
 
-def format_report(results: Sequence[AccountResult], date_str: str | None = None) -> str:
+def format_report(
+    results: Sequence[AccountResult],
+    date_str: str | None = None,
+    news_item: NewsItem | None = None,
+) -> str:
     """Format structured check-in results into notification message."""
     if date_str is None:
         date_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
@@ -60,10 +65,19 @@ def format_report(results: Sequence[AccountResult], date_str: str | None = None)
     lines.append(
         f"统计：成功 {success_count} / 已签 {already_count} / 失败 {fail_count} —— 共 {total_count} 项"
     )
+
+    if news_item is not None:
+        lines.append("")
+        lines.append(format_news_block(news_item))
+
     return "\n".join(lines)
 
 
-def send_report(results: Sequence[AccountResult], config: Config) -> None:
+def send_report(
+    results: Sequence[AccountResult],
+    config: Config,
+    news_item: NewsItem | None = None,
+) -> None:
     """Send report to configured notification channels according to push level."""
     has_failure = any(
         gr.status not in (CheckinStatus.SUCCESS, CheckinStatus.ALREADY_SIGNED)
@@ -75,7 +89,7 @@ def send_report(results: Sequence[AccountResult], config: Config) -> None:
         logger.info("Push level is fail_only and all check-ins succeeded. Skipping notification.")
         return
 
-    report = format_report(results)
+    report = format_report(results, news_item=news_item)
 
     # 1. Telegram Bot
     if config.telegram_bot_token and config.telegram_chat_id:

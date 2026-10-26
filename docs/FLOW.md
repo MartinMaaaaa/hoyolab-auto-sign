@@ -26,8 +26,14 @@ GitHub Actions 触发（cron UTC 02:00 / 手动 dispatch）
 ┌──────────────────┐
 │ 汇总 CheckinResult│  SUCCESS / ALREADY_SIGNED / CAPTCHA_RISK / INVALID_COOKIE / API_ERR / NET_ERR
 └────────┬─────────┘
+         │
          ▼
-┌──────────────────┐   PUSH_LEVEL 过滤（手动触发视为 all）
+┌──────────────────┐   ENABLE_DAILY_NEWS=true
+│ news.py 获取资讯  │ ──► 多路权威加拿大 Feed (IRCC/CBC/Globe&Mail/Global News)
+└────────┬─────────┘      4大规则过滤：2天内、官方/高权重、加拿大(排美)、禁止商业
+         │                优先级打分：移民/留学生/新居民焦点优先，中英双语呈现
+         ▼
+┌──────────────────┐   PUSH_LEVEL 过滤（默认为 all，推送签到与资讯）
 │ notify.py 推送    │ ──► Telegram Bot API / PushPlus
 └────────┬─────────┘
          ▼
@@ -173,7 +179,8 @@ jobs:
 | `PUSHPLUS_TOKEN` | ❌ | Secrets | — | PushPlus 推送 token |
 | `TELEGRAM_BOT_TOKEN` | ❌ | Secrets | — | Telegram Bot token |
 | `TELEGRAM_CHAT_ID` | ❌ | Secrets | — | Telegram 接收人/群 ID |
-| `PUSH_LEVEL` | ❌ | Vars | `fail_only` | `all` / `fail_only`；手动 dispatch 强制 `all` |
+| `PUSH_LEVEL` | ❌ | Vars | `all` | `all` / `fail_only`；workflow 默认设为 `all` 保障每日签到与要闻推送 |
+| `ENABLE_DAILY_NEWS` | ❌ | Vars | `true` | `true` / `false`；控制是否启用每日加拿大要闻精选推送 |
 | `CHECKIN_MAX_ATTEMPTS` | ❌ | — | `3` | 重试次数 |
 | `CHECKIN_RETRY_DELAY_SECONDS` | ❌ | — | `60` | 重试间隔（秒） |
 | `HOYOLAB_APP_VERSION` | ❌ | Vars | `2.34.1` | 覆盖 `x-rpc-app_version` |
@@ -182,12 +189,22 @@ jobs:
 ## 7. 通知报告格式（notify.py 产出）
 
 ```
-🎮 HoYoLAB 签到报告 2026-10-09 (UTC)
+🎮 HoYoLAB 签到报告 2026-10-26 (UTC)
 账号 1（ltuid 26***20）
-  ✅ 原神：签到成功（本月第 8 天）
-  ⏭️ 星穹铁道：今日已签（本月第 8 天）
-  ⚠️ 绝区零：触发风控验证码，需人工处理
-统计：成功 1 / 已签 1 / 失败 1 —— 共 3 项
+  ✅ 原神：签到成功（本月第 26 天）
+  ⏭️ 星穹铁道：今日已签（本月第 26 天）
+  ✅ 绝区零：签到成功（本月第 26 天）
+统计：成功 2 / 已签 1 / 失败 0 —— 共 3 项
+
+━━━━━━━━━━━━━━━━━━
+📰 🍁 今日加拿大要闻（移民与新居民焦点）
+📌 标题：史密斯在移民问题上获得微弱多数，艾伯塔人拒绝宪法改革
+🏷️ 原文：Smith scores slim majority on immigration questions, Albertans reject constitutional changes
+🏛️ 来源：CBC News（加拿大广播公司）
+🕒 发布：2026-10-25 19:40 UTC（9 小时前）
+🔗 链接：https://www.cbc.ca/...
+📝 摘要：...
+━━━━━━━━━━━━━━━━━━
 ```
 
 - `fail_only`：任一项 ∉ {SUCCESS, ALREADY_SIGNED} 才发送。

@@ -31,6 +31,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config.max_attempts, 3)
         self.assertEqual(config.retry_delay_seconds, 60.0)
         self.assertEqual(config.app_version, DEFAULT_APP_VERSION)
+        self.assertTrue(config.enable_news)
 
     def test_custom_games_parsing(self) -> None:
         env = {
@@ -84,6 +85,7 @@ class TestConfig(unittest.TestCase):
             "CHECKIN_RETRY_DELAY_SECONDS": "15.5",
             "HOYOLAB_APP_VERSION": "3.0.0",
             "HOYOLAB_USER_AGENT": "CustomUA/1.0",
+            "ENABLE_DAILY_NEWS": "false",
         }
         config = load_config(env)
         self.assertEqual(config.pushplus_token, "token_pp")
@@ -94,6 +96,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config.retry_delay_seconds, 15.5)
         self.assertEqual(config.app_version, "3.0.0")
         self.assertEqual(config.user_agent, "CustomUA/1.0")
+        self.assertFalse(config.enable_news)
 
 
 if __name__ == "__main__":
